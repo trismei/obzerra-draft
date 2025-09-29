@@ -1,0 +1,11 @@
+claim_id,total_claim_amount,incident_hour_of_the_day,age,incident_state,incident_severity,incident_type,witnesses
+CLM_100001,15000,14,35,OH,Minor Damage,Single Vehicle Collision,2
+CLM_100002,45000,22,28,NY,Major Damage,Multi-vehicle Collision,1
+CLM_100003,75000,3,45,CA,Total Loss,Vehicle Theft,0
+CLM_100004,8500,9,52,TX,Minor Damage,Parked Car,3
+CLM_100005,120000,1,24,FL,Total Loss,Single Vehicle Collision,0
+CLM_100006,25000,16,41,OH,Major Damage,Multi-vehicle Collision,2
+CLM_100007,5000,12,38,IN,Minor Damage,Parked Car,1
+CLM_100008,90000,23,29,NY,Total Loss,Multi-vehicle Collision,0
+CLM_100009,35000,7,33,CA,Major Damage,Single Vehicle Collision,2
+CLM_100010,60000,2,26,TX,Total Loss,Vehicle Theft,0
