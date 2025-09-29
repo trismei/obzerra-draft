@@ -1,79 +1,56 @@
-# Obzerra - Fraud Detection System
+# Obzerra Fraud Detection System
 
-## Overview
+Obzerra is a local-first analytics workbench built for Philippine insurance fraud teams. The application combines rule-based heuristics with machine-learning signals to help analysts prioritise suspicious claims in real time.
 
-Obzerra is a local-first fraud detection MVP designed specifically for Philippine insurance claims officers. The system provides an intuitive interface for analyzing insurance claims using rule-based fraud detection algorithms and machine learning models. Built with Streamlit, it offers both single claim analysis and batch CSV processing capabilities, focusing on simplicity and actionable insights for non-technical users.
+## Key capabilities
 
-## User Preferences
+- **Interactive dashboard** – monitor overall claim volumes, risk mix, and fraud patterns at a glance.
+- **Single-claim triage** – capture claim information through a guided form and receive an immediate risk assessment.
+- **Batch analysis** – upload CSV files, map columns to the internal schema, and process dozens of claims simultaneously.
+- **Explainable outputs** – see which rules and features contributed to each score and download enriched results for offline review.
+- **On-device workflow** – all processing happens inside the Streamlit session; no external APIs or services are required.
 
-Preferred communication style: Simple, everyday language.
+## Getting started
 
-## System Architecture
+```bash
+# install dependencies
+uv sync
 
-### Frontend Architecture
-- **Framework**: Streamlit with custom CSS for a modern dark UI with blue-purple gradient
-- **Layout**: Wide layout with collapsed sidebar, responsive design
-- **Components**: 
-  - Landing dashboard with KPI cards and Plotly visualizations
-  - Batch CSV upload with drag-and-drop functionality
-  - Column mapping interface for flexible data input
-  - Results tables with risk scoring and explanations
+# launch the Streamlit interface
+uv run streamlit run app.py
+```
 
-### Backend Architecture
-- **Core Engine**: Rule-based fraud detection system (`FraudEngine`) with weighted scoring
-- **Data Processing**: Modular data processor for cleaning, validation, and feature engineering
-- **ML Pipeline**: Ensemble approach using Random Forest and Logistic Regression with SMOTE balancing
-- **Explanation System**: Plain-language explanation engine that converts technical outputs to user-friendly insights
+The default configuration runs locally. When the app is open, use the **Batch upload** tab to analyse CSV files or the **Single claim** tab for ad-hoc assessments.
 
-### Fraud Detection Logic
-- **Rule-Based Analysis**: 8 weighted fraud indicators including:
-  - Z-score outliers for claim amounts
-  - Benford's Law analysis for number authenticity
-  - Temporal pattern analysis (unusual hours)
-  - Round amount detection
-  - High-value claim flagging
-  - Demographic risk factors
-  - Witness validation
-  - Frequency analysis
-- **Risk Scoring**: 0-100 scale with Low/Medium/High bands
-- **Feature Engineering**: Automated creation of derived features from raw claim data
+## Architecture overview
 
-### Data Management
-- **Session State**: In-memory storage for analysis history and session statistics
-- **Local Processing**: No external data transmission, all processing done locally
-- **Column Mapping**: Flexible mapping system allowing users to map their CSV columns to internal schema
-- **Data Validation**: Comprehensive cleaning and validation with duplicate handling
+| Layer | Description |
+| --- | --- |
+| **Interface** | Streamlit UI with custom styling and Plotly charts. |
+| **Data processing** | `DataProcessor` standardises column names, performs validation, and engineers statistical features. |
+| **Rule engine** | `FraudEngine` applies weighted rules such as z-score outliers, Benford analysis, and unusual-hour flags. |
+| **Machine learning** | `MLModelManager` trains Logistic Regression and Random Forest models (with SMOTE balancing) once enough labelled-like data is available. |
+| **Explainability** | `ExplanationEngine` translates rule/ML signals into plain-language insights and recommended actions. |
+| **Session storage** | `SessionManager` persists recent runs and metrics in Streamlit session state. |
 
-### ML Model Architecture
-- **Ensemble Approach**: Combines Logistic Regression and Random Forest models
-- **Feature Scaling**: StandardScaler for numerical feature normalization
-- **Imbalanced Data Handling**: SMOTE oversampling for minority class balancing
-- **Model Metrics**: Comprehensive evaluation including accuracy, precision, recall, F1-score, and ROC-AUC
-- **Feature Importance**: Analysis and visualization of most predictive features
+## Dataset expectations
 
-## External Dependencies
+| Column | Purpose |
+| --- | --- |
+| `claim_id` | Unique identifier for each claim. |
+| `total_claim_amount` | Amount being claimed (₱). |
+| `incident_hour_of_the_day` | Hour when the incident occurred (0-23). |
+| Additional optional fields | Age, incident type/severity, number of witnesses, property damage indicator, police report flag. |
 
-### Core Libraries
-- **Streamlit**: Web application framework for the user interface
-- **Pandas/Numpy**: Data manipulation and numerical computing
-- **Plotly**: Interactive data visualization and charting
-- **Scikit-learn**: Machine learning algorithms and preprocessing
-- **Imbalanced-learn**: SMOTE implementation for handling class imbalance
-- **SciPy**: Statistical analysis functions for fraud detection rules
-- **Joblib**: Model serialization and persistence
+A downloadable CSV template is available directly inside the app to help teams align their exports.
 
-### Data Requirements
-- **Input Format**: CSV files with flexible column mapping
-- **Required Fields**: claim_id, total_claim_amount, incident_hour_of_the_day
-- **Optional Fields**: age, incident_state, incident_severity, incident_type, witnesses, policy_number, incident_date, property_damage, police_report_available, fraud_reported
+## Contributing
 
-### Statistical Methods
-- **Benford's Law**: First-digit distribution analysis for fraud detection
-- **Z-score Analysis**: Statistical outlier detection for claim amounts
-- **Cross-validation**: Model validation and performance assessment
-- **Feature Correlation**: Analysis of predictive feature relationships
+1. Fork the repository and create a feature branch.
+2. Make changes and ensure the Streamlit app still launches without errors.
+3. Run `uv run streamlit run app.py` locally to verify UI updates.
+4. Submit a pull request describing the improvement or fix.
 
-### No External APIs
-- The system is designed to be completely local-first with no external API dependencies
-- All processing, analysis, and storage happens within the Streamlit application
-- No database connections or cloud services required
+---
+
+Made with 🛡️ for investigative analysts who need clear, defensible fraud decisions.

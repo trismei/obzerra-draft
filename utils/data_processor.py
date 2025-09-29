@@ -1,7 +1,14 @@
-import pandas as pd
+"""Utilities for preparing insurance claim datasets for analysis."""
+
+from __future__ import annotations
+
+import logging
+
 import numpy as np
-from datetime import datetime, timedelta
-import re
+import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 class DataProcessor:
     """Handles data preprocessing and feature engineering for fraud detection."""
@@ -37,10 +44,14 @@ class DataProcessor:
             # Handle duplicate claim_ids by making them unique
             if 'claim_id' in processed_df.columns and processed_df['claim_id'].duplicated().any():
                 duplicates_count = processed_df['claim_id'].duplicated().sum()
-                # Make unique by appending row index to duplicates
+                # Make duplicate identifiers unique by appending the row index
                 mask = processed_df['claim_id'].duplicated(keep='first')
-                processed_df.loc[mask, 'claim_id'] = processed_df.loc[mask, 'claim_id'].astype(str) + '_dup_' + processed_df.loc[mask].index.astype(str)
-                print(f"Warning: Found {duplicates_count} duplicate claim IDs. Made unique automatically.")
+                processed_df.loc[mask, 'claim_id'] = (
+                    processed_df.loc[mask, 'claim_id'].astype(str)
+                    + '_dup_'
+                    + processed_df.loc[mask].index.astype(str)
+                )
+                logger.warning("Detected %s duplicate claim IDs. Unique identifiers were generated automatically.", duplicates_count)
             
             # Clean and validate data
             processed_df = self._clean_data(processed_df)
@@ -50,9 +61,9 @@ class DataProcessor:
             
             return processed_df
             
-        except Exception as e:
-            print(f"Data preparation error: {str(e)}")
-            raise Exception(f"Data preparation failed: {str(e)}")
+        except Exception as err:  # pragma: no cover - defensive logging path
+            logger.exception("Data preparation failed")
+            raise Exception(f"Data preparation failed: {err}") from err
     
     def prepare_single_claim(self, claim_data):
         """Prepare single claim data for analysis."""

@@ -1,14 +1,21 @@
-import pandas as pd
+"""Machine learning model management for the Obzerra fraud engine."""
+
+from __future__ import annotations
+
+import logging
+
+import joblib
 import numpy as np
+import pandas as pd
+from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-from imblearn.over_sampling import SMOTE
-import joblib
-import warnings
-warnings.filterwarnings('ignore')
+
+
+logger = logging.getLogger(__name__)
 
 class MLModelManager:
     """Manages machine learning models for fraud detection."""
@@ -57,8 +64,8 @@ class MLModelManager:
             self.is_trained_flag = True
             return True
             
-        except Exception as e:
-            print(f"Model training failed: {str(e)}")
+        except Exception as err:
+            logger.exception("Model training failed")
             return False
     
     def predict_batch(self, data):
@@ -86,8 +93,8 @@ class MLModelManager:
             
             return ensemble_probs
             
-        except Exception as e:
-            print(f"Batch prediction failed: {str(e)}")
+        except Exception as err:
+            logger.exception("Batch prediction failed")
             return np.full(len(data), 0.5)
     
     def predict_single(self, data):
@@ -121,8 +128,8 @@ class MLModelManager:
             
             return float(ensemble_prob)
             
-        except Exception as e:
-            print(f"Single prediction failed: {str(e)}")
+        except Exception as err:
+            logger.exception("Single prediction failed")
             return 0.5
     
     def _prepare_training_data(self, data):
@@ -223,8 +230,8 @@ class MLModelManager:
                 'n_samples': len(y_test)
             }
             
-        except Exception as e:
-            print(f"Model evaluation failed: {str(e)}")
+        except Exception as err:
+            logger.exception("Model evaluation failed")
             self.model_metrics = {
                 'accuracy': 0.5, 'precision': 0.5, 'recall': 0.5,
                 'f1': 0.5, 'auc': 0.5, 'n_samples': 0
@@ -241,8 +248,8 @@ class MLModelManager:
                 self.feature_importance = pd.DataFrame(importance_data)
                 self.feature_importance = self.feature_importance.sort_values('importance', ascending=False)
             
-        except Exception as e:
-            print(f"Feature importance calculation failed: {str(e)}")
+        except Exception as err:
+            logger.exception("Feature importance calculation failed")
             self.feature_importance = pd.DataFrame()
     
     def is_trained(self):
@@ -286,6 +293,6 @@ class MLModelManager:
             self.feature_importance = model_data['feature_importance']
             self.is_trained_flag = True
             return True
-        except Exception as e:
-            print(f"Model loading failed: {str(e)}")
+        except Exception as err:
+            logger.exception("Model loading failed")
             return False
