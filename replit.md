@@ -1,76 +1,26 @@
-# replit.md
+# Architecture notes
 
-## Overview
+This document summarises the main decisions behind the Obzerra prototype so future contributors have quick context.
 
-Obzerra is a local-first fraud detection MVP specifically designed for Philippine insurance claims officers. The system provides an intuitive Streamlit-based interface for analyzing insurance claims using a combination of rule-based detection algorithms and machine learning models. The application focuses on simplicity and user-friendliness, allowing claims officers to either check individual claims or upload batch CSV files for comprehensive fraud analysis. All processing is done locally without external data transmission, ensuring data privacy and security.
+## Front-end
 
-## User Preferences
+- **Framework:** Streamlit running in wide-layout mode with a collapsed sidebar.
+- **Styling:** Custom CSS for typography, card layouts, and gradients that align with the Obzerra visual identity.
+- **Visualisations:** Plotly Express/Graph Objects are used for donut, line, and bar charts on the dashboard and history views.
+- **UX touches:** Column mapping for batch uploads, accordions for template guidance, card-based results with contextual icons, and responsive grid layouts.
 
-Preferred communication style: Simple, everyday language.
+## Fraud analytics engine
 
-## System Architecture
+- **Data processing:** The `DataProcessor` class renames incoming columns, enforces required fields, handles duplicates, and engineers statistical features (log transforms, Benford scores, hour buckets, etc.).
+- **Rules engine:** `FraudEngine` applies weighted heuristics covering z-score outliers, unusual hours, round amounts, high-value thresholds, demographic risk, and witness checks.
+- **Machine learning:** `MLModelManager` orchestrates a Logistic Regression + Random Forest ensemble. SMOTE balances training data once enough claims have been analysed. Metrics and feature importances feed the sidebar.
+- **Explainability:** `ExplanationEngine` converts triggered rules and ML probabilities into analyst-friendly summaries and recommended actions.
+- **Session management:** `SessionManager` persists run history, totals, and derived metrics directly in Streamlit session state for a local-first experience.
 
-### Frontend Architecture
-- **Framework**: Streamlit with custom CSS for a modern dark UI featuring blue-purple gradient design
-- **Layout**: Wide layout with collapsed sidebar for maximum screen real estate
-- **User Interface Components**:
-  - Landing dashboard with KPI cards showing analysis statistics
-  - Batch CSV upload with drag-and-drop functionality
-  - Column mapping interface allowing flexible data input schema
-  - Results tables with risk scoring and plain-language explanations
-  - Interactive Plotly visualizations for risk distribution analysis
+## Operational considerations
 
-### Backend Architecture
-- **Core Detection Engine**: Rule-based fraud detection system (`FraudEngine`) implementing weighted scoring across 8 fraud indicators
-- **Data Processing Pipeline**: Modular data processor handling cleaning, validation, feature engineering, and duplicate resolution
-- **ML Pipeline**: Ensemble approach combining Random Forest and Logistic Regression models with SMOTE balancing for imbalanced datasets
-- **Explanation System**: Converts technical ML outputs into user-friendly insights using plain-language templates
-- **Session Management**: In-memory persistence for analysis history and session statistics
+- Streamlit session memory is used instead of an external database; the prototype is intended for offline demos.
+- Training data is inferred from rule scores until labelled outcomes are available.
+- CSV exports combine original columns with model outputs to support investigations in downstream tools.
 
-### Fraud Detection Logic
-- **Rule-Based Analysis**: 8 weighted fraud indicators including:
-  - Z-score outliers for claim amounts (weight: 0.2)
-  - Benford's Law analysis for number authenticity (weight: 0.15)
-  - Temporal pattern analysis for unusual incident hours (weight: 0.1)
-  - Round amount detection (weight: 0.1)
-  - High-value claim flagging (weight: 0.15)
-  - Young claimant high-value combinations (weight: 0.1)
-  - Witness validation patterns (weight: 0.1)
-  - Frequency analysis for repeat claims (weight: 0.1)
-- **Risk Scoring**: 0-100 scale with Low (0-30), Medium (31-70), High (71-100) risk bands
-- **Feature Engineering**: Automated creation of derived features from raw claim data
-
-### Data Management
-- **Local Processing**: All data processing occurs locally without external transmission
-- **Column Mapping System**: Flexible mapping allowing users to map CSV columns to internal schema
-- **Required Fields**: claim_id, total_claim_amount, incident_hour_of_the_day
-- **Optional Fields**: age, incident_state, incident_severity, incident_type, witnesses
-- **Data Validation**: Comprehensive cleaning with automatic duplicate handling and missing value imputation
-
-### ML Model Architecture
-- **Ensemble Approach**: Combines Logistic Regression and Random Forest models for robust predictions
-- **Feature Preprocessing**: StandardScaler for numerical feature normalization
-- **Imbalanced Data Handling**: SMOTE oversampling to address minority class imbalance in fraud datasets
-- **Model Training**: Requires minimum 50 samples with at least 5 positive fraud cases
-- **Performance Metrics**: Tracks accuracy, precision, recall, F1-score, and ROC-AUC
-
-## External Dependencies
-
-### Core Libraries
-- **Streamlit**: Web application framework for the user interface
-- **Pandas**: Data manipulation and analysis
-- **NumPy**: Numerical computing for statistical operations
-- **Plotly**: Interactive data visualization (express and graph_objects)
-- **Scikit-learn**: Machine learning models and preprocessing utilities
-- **Imbalanced-learn**: SMOTE implementation for handling imbalanced datasets
-- **SciPy**: Statistical functions for fraud detection algorithms
-- **Joblib**: Model serialization and persistence
-
-### Data Processing Dependencies
-- **datetime**: Time-based feature engineering and session management
-- **re**: Regular expression processing for data validation
-- **base64/io**: File handling for CSV upload functionality
-- **json**: Configuration and session data serialization
-
-### No External Services
-The system is designed to be completely local-first with no external API calls, database connections, or cloud service dependencies, ensuring data privacy and offline functionality.
+For deeper changes, scan the `utils/` package to understand how each component collaborates with the Streamlit interface in `app.py`.
